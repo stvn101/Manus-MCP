@@ -1,0 +1,35 @@
+name: Supabase Connection Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  test-connection:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Test Supabase Connection
+        env:
+          SUPABASE_URL: "https://tdtrpwdpxvkygulrlfgh.supabase.co"
+          SUPABASE_KEY: <LaTex>${{ secrets.SUPABASE_SERVICE_KEY || secrets.SUPABASE_KEY }}
+        run: |
+          echo "Testing connection to $</LaTex>SUPABASE_URL"
+          if [ -z "<LaTex>$SUPABASE_KEY" ]; then
+            echo "Error: SUPABASE_KEY secret is not set or accessible."
+            exit 1
+          fi
+          
+          RESPONSE=$</LaTex>(curl -s -o /dev/null -w "%{http_code}" "<LaTex>$SUPABASE_URL/rest/v1/" \
+            -H "apikey: $</LaTex>SUPABASE_KEY" \
+            -H "Authorization: Bearer <LaTex>$SUPABASE_KEY")
+          
+          if [ "$</LaTex>RESPONSE" -eq 200 ] || [ "<LaTex>$RESPONSE" -eq 204 ]; then
+            echo "Successfully connected to Supabase! (HTTP $</LaTex>RESPONSE)"
+          else
+            echo "Failed to connect to Supabase. Received HTTP $RESPONSE"
+            exit 1
+          fi
