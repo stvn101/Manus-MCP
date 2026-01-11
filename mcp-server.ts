@@ -13,13 +13,15 @@ dotenv.config();
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || "";
 const SUPABASE_ANON_KEY = process.env.VITE_SUPABASE_ANON_KEY || "";
+const SUPABASE_ACCESS_TOKEN = process.env.SUPABASE_ACCESS_TOKEN || "";
+const SUPABASE_PROJECT_ID = process.env.VITE_SUPABASE_PROJECT_ID || "tdtrpwdpxvkygulrlfgh";
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const server = new Server(
   {
     name: "carbon-construct-mcp",
-    version: "1.0.0",
+    version: "1.1.0",
   },
   {
     capabilities: {
@@ -36,10 +38,7 @@ async function fetchCarbonConstructContent(path: string = "") {
     const url = `https://carbonconstruct.com.au${path.startsWith('/') ? '' : '/'}${path}`;
     const response = await axios.get(url);
     const $ = cheerio.load(response.data);
-    
-    // Remove scripts and styles
     $('script, style').remove();
-    
     return {
       title: $('title').text(),
       content: $('body').text().replace(/\s+/g, ' ').trim().substring(0, 5000),
@@ -51,22 +50,29 @@ async function fetchCarbonConstructContent(path: string = "") {
 }
 
 /**
- * Tool to query Supabase data
+ * Tool to query Supabase data using Management API for admin tasks
  */
-async function querySupabase(table: string, query: any = {}) {
+async function getSupabaseProjectInfo() {
   try {
-    let supabaseQuery = supabase.from(table).select('*');
-    
-    if (query.limit) {
-      supabaseQuery = supabaseQuery.limit(query.limit);
-    }
-    
-    const { data, error } = await supabaseQuery;
-    
-    if (error) throw error;
-    return data;
+    const response = await axios.get(`https://api.supabase.com/v1/projects/${SUPABASE_PROJECT_ID}`, {
+      headers: { 'Authorization': `Bearer ${SUPABASE_ACCESS_TOKEN}` }
+    });
+    return response.data;
   } catch (error: any) {
-    return { error: `Supabase query failed: ${error.message}` };
+    return { error: `Failed to fetch project info: ${error.response?.data?.message || error.message}` };
+  }
+}
+
+async function listSupabaseTables() {
+  try {
+    // Using the Management API to list tables requires a different approach or using the SQL API
+    // For now, let's use the SQL API if possible, or just fetch project details
+    const response = await axios.get(`https://api.supabase.com/v1/projects/${SUPABASE_PROJECT_ID}/database/tables`, {
+      headers: { 'Authorization': `Bearer ${SUPABASE_ACCESS_TOKEN}` }
+    });
+    return response.data;
+  } catch (error: any) {
+    return { error: `Failed to list tables: ${error.response?.data?.message || error.message}` };
   }
 }
 
@@ -87,20 +93,23 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         },
       },
       {
-        name: "query_database",
-        description: "Query the Supabase database for project or material data",
+        name: "get_project_info",
+        description: "Get administrative information about the Supabase project",
+        inputSchema: { type: "object", properties: {} },
+      },
+      {
+        name: "list_database_tables",
+        description: "List all tables in the Supabase database using Management API",
+        inputSchema: { type: "object", properties: {} },
+      },
+      {
+        name: "query_table_data",
+        description: "Query data from a specific table using the Anon key",
         inputSchema: {
           type: "object",
           properties: {
-            table: {
-              type: "string",
-              description: "The table name to query",
-            },
-            limit: {
-              type: "number",
-              description: "Maximum number of records to return",
-              default: 10,
-            },
+            table: { type: "string" },
+            limit: { type: "number", default: 10 },
           },
           required: ["table"],
         },
@@ -116,17 +125,21 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     case "get_website_content": {
       const path = (args?.path as string) || "";
       const result = await fetchCarbonConstructContent(path);
-      return {
-        content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
-      };
+      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
     }
-    case "query_database": {
+    case "get_project_info": {
+      const result = await getSupabaseProjectInfo();
+      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+    }
+    case "list_database_tables": {
+      const result = await listSupabaseTables();
+      return { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] };
+    }
+    case "query_table_data": {
       const table = args?.table as string;
       const limit = (args?.limit as number) || 10;
-      const result = await querySupabase(table, { limit });
-      return {
-        content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
-      };
+      const { data, error } = await supabase.from(table).select('*').limit(limit);
+      return { content: [{ type: "text", text: JSON.stringify(error || data, null, 2) }] };
     }
     default:
       throw new Error(`Unknown tool: ${name}`);
@@ -136,7 +149,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("Carbon Construct MCP Server running on stdio");
+  console.error("Carbon Construct Admin MCP Server running");
 }
 
 main().catch((error) => {
