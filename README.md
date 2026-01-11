@@ -1,73 +1,93 @@
-# Welcome to your Lovable project
+# Manus-MCP Server
 
-## Project info
+A specialized Model Context Protocol (MCP) server designed to integrate **Carbon Construct** and **Supabase** capabilities directly into AI workflows. This server allows AI models to interact with the Carbon Construct website and manage data within a Supabase project.
 
-**URL**: https://lovable.dev/projects/84d109a9-fe07-4ee2-b22b-c1593e8ad079
+## 🚀 Features
 
-## How can I edit this code?
+- **Carbon Construct Integration**: Fetch and analyze content from `https://carbonconstruct.com.au`.
+- **Supabase Management**: Administrative access to Supabase projects using Personal Access Tokens.
+- **Data Querying**: Real-time querying of database tables.
+- **Built-in Tools**: A suite of tools for both informational and administrative tasks.
 
-There are several ways of editing your application.
+## 🛠️ Prerequisites
 
-**Use Lovable**
+- [Node.js](https://nodejs.org/) (v18 or higher)
+- [npm](https://www.npmjs.com/)
+- A Supabase account and project
+- A Supabase Personal Access Token
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/84d109a9-fe07-4ee2-b22b-c1593e8ad079) and start prompting.
+## 📦 Installation
 
-Changes made via Lovable will be committed automatically to this repo.
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/stvn101/Manus-MCP.git
+   cd Manus-MCP
+   ```
 
-**Use your preferred IDE**
+2. **Install dependencies**:
+   ```bash
+   npm install
+   ```
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+3. **Configure Environment Variables**:
+   Create a `.env` file in the root directory and add your credentials:
+   ```env
+   VITE_SUPABASE_URL="https://tdtrpwdpxvkygulrlfgh.supabase.co"
+   VITE_SUPABASE_ANON_KEY="your-anon-key"
+   VITE_SUPABASE_PROJECT_ID="tdtrpwdpxvkygulrlfgh"
+   SUPABASE_ACCESS_TOKEN="your-personal-access-token"
+   ```
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## 🚀 Operation
 
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+### Starting the Server
+To run the MCP server locally using stdio:
+```bash
+npm run mcp:start
 ```
 
-**Edit a file directly in GitHub**
+### Available Tools
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+| Tool Name | Description | Parameters |
+| --- | --- | --- |
+| `get_website_content` | Fetches content from Carbon Construct | `path` (e.g., `/pricing`) |
+| `get_project_info` | Gets admin info about the Supabase project | None |
+| `list_database_tables` | Lists all tables in the database | None |
+| `query_table_data` | Queries data from a specific table | `table` (required), `limit` |
 
-**Use GitHub Codespaces**
+## 🤖 Integration with AI Clients
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+To use this server with an MCP-compatible AI client (like Claude Desktop), add the following to your configuration file:
 
-## What technologies are used for this project?
+### macOS (Claude Desktop)
+File: `~/Library/Application Support/Claude/claude_desktop_config.json`
 
-This project is built with:
+```json
+{
+  "mcpServers": {
+    "carbon-construct": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "tsx",
+        "/absolute/path/to/Manus-MCP/mcp-server.ts"
+      ],
+      "env": {
+        "VITE_SUPABASE_URL": "https://tdtrpwdpxvkygulrlfgh.supabase.co",
+        "VITE_SUPABASE_ANON_KEY": "your-anon-key",
+        "VITE_SUPABASE_PROJECT_ID": "tdtrpwdpxvkygulrlfgh",
+        "SUPABASE_ACCESS_TOKEN": "your-access-token"
+      }
+    }
+  }
+}
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## 🛡️ Security
 
-## How can I deploy this project?
+- **.env Safety**: The `.env` file is included in `.gitignore` to prevent sensitive credentials from being pushed to version control.
+- **Access Control**: Uses Supabase's Anon Key for standard queries and Personal Access Tokens for administrative tasks.
 
-Simply open [Lovable](https://lovable.dev/projects/84d109a9-fe07-4ee2-b22b-c1593e8ad079) and click on Share -> Publish.
+## 📄 License
 
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+This project is licensed under the MIT License.
