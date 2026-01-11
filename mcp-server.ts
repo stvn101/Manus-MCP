@@ -150,6 +150,8 @@ async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
   console.error("Carbon Construct Admin MCP Server running");
+  console.error(`Connected to Supabase URL: ${SUPABASE_URL}`);
+  console.error(`Project ID: ${SUPABASE_PROJECT_ID}`);
 }
 
 main().catch((error) => {

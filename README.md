@@ -46,6 +46,12 @@ To run the MCP server locally using stdio:
 npm run mcp:start
 ```
 
+### Testing the Connection
+To verify your environment variables are loaded correctly, you can run:
+```bash
+export $(grep -v '^#' .env | xargs) && echo "Connecting to: $VITE_SUPABASE_URL"
+```
+
 ### Available Tools
 
 | Tool Name | Description | Parameters |
