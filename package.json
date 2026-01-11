@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "mcp:start": "tsx mcp-server.ts",
+    "mcp:start": "tsx --tsconfig tsconfig.mcp.json mcp-server.ts",
     "dev": "vite",
     "build": "vite build",
     "build:dev": "vite build --mode development",

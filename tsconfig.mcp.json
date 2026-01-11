@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "lib": ["ESNext"],
+    "skipLibCheck": true,
+    "strict": false,
+    "esModuleInterop": true,
+    "allowJs": true,
+    "outDir": "dist"
+  },
+  "include": ["mcp-server.ts"]
+}
